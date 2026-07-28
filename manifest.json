@@ -1,0 +1,17 @@
+{
+  "name": "BYAO Studio Pro - Emerald Secure Cloud",
+  "short_name": "BYAO Studio",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#010204",
+  "theme_color": "#010204",
+  "icons": [
+    {
+      "src": "byao-studio.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
