@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="sw" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BYAO Studio Pro - Ecosystem</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#030712',
+                        cardBg: '#0b0f19',
+                        accentRed: '#dc2626'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- JSZip CDN kwa ajili ya Zip Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body class="bg-darkBg text-slate-100 min-h-screen w-full flex flex-col font-sans overflow-x-hidden m-0 p-0">
+
+    <!-- Ulinzi wa Usalama (Security Guard Login Check) -->
+    <script>
+        let ameLogin = localStorage.getItem("byaoLogin");
+        if(ameLogin !== "ndiyo"){
+            localStorage.setItem("ukurasaUliotaka", window.location.pathname.split("/").pop());
+            window.location.href = "login.html";
+        }
+    </script>
+
+    <!-- Header Bar -->
+    <header class="w-full bg-cardBg/95 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-xl">
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleSidebar()" class="bg-slate-900 hover:bg-slate-800 text-red-500 p-2 rounded-xl border border-slate-800 transition shadow-sm flex items-center justify-center" title="Fungua/Funga Sidebar">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <span class="bg-red-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-md">BYAO PRO</span>
+            <h1 id="headerTitle" class="text-sm sm:text-base font-extrabold tracking-tight text-white">Studio Pro Ecosystem</h1>
+        </div>
+        <div class="flex items-center space-x-2">
+            <div id="toastNotification" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide shadow-sm">
+                Imetekelezwa
+            </div>
+            <button onclick="goBackToStudio()" class="bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold px-3 py-1.5 rounded-xl text-xs transition border border-slate-700/60 shadow-md flex items-center space-x-1">
+                <span>⬅️ Studio Central</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- App Main Layout with Sliding Sidebar -->
+    <div class="flex-1 flex relative overflow-hidden">
+        
+        <!-- Sidebar ya Kisasa yenye Mishale na Viungo vya Studio -->
+        <aside id="appSidebar" class="w-72 bg-cardBg border-r border-slate-800/80 flex flex-col transition-all duration-300 z-40 absolute lg:relative inset-y-0 left-0 -translate-x-full lg:translate-x-0 shadow-2xl">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-bold text-red-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>⚡</span> Byao Studio Suite
+                </span>
+                <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <!-- Viungo vya Faili za Studio (Kulingana na Picha ya Mradi) -->
+            <div class="p-3 border-b border-slate-800/60 bg-slate-950/40">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Kurasa & Moduli za Studio</p>
+                <div class="grid grid-cols-1 gap-1.5">
+                    <a href="studio.html" class="flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-red-600/20 text-slate-200 hover:text-red-400 border border-slate-800 transition">
+                        <span>🎛️ Studio Main</span>
+                        <span class="text-slate-500">➔</span>
+                    </a>
+                    <a href="developer pro.html" class="flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-red-600/20 text-slate-200 hover:text-red-400 border border-slate-800 transition">
+                        <span>🛠️ Developer Pro</span>
+                        <span class="text-slate-500">➔</span>
+                    </a>
+                    <a href="finish studio.html" class="flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-red-600/20 text-slate-200 hover:text-red-400 border border-slate-800 transition">
+                        <span>🏁 Finish Studio</span>
+                        <span class="text-slate-500">➔</span>
+                    </a>
+                    <a href="generate ur.html" class="flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-red-600/20 text-slate-200 hover:text-red-400 border border-slate-800 transition">
+                        <span>🚀 Generator Engine</span>
+                        <span class="text-slate-500">➔</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- File Explorer VFS -->
+            <div class="flex-1 p-4 flex flex-col space-y-3 overflow-y-auto">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Project VFS Explorer</span>
+                    <div class="flex gap-1">
+                        <button onclick="openModal('folderModal')" class="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] font-bold px-2 py-1 rounded-lg border border-slate-700" title="Unda Folder">+📁</button>
+                        <button onclick="openModal('fileModal')" class="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] font-bold px-2 py-1 rounded-lg border border-slate-700" title="Unda Faili">+📄</button>
+                    </div>
+                </div>
+                <div id="fileExplorerList" class="flex flex-col space-y-1.5">
+                    <!-- Mafaili yanajazwa hapa na Script -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-6 flex flex-col space-y-6 overflow-y-auto">
+            
+            <!-- Management Toolbar & Pro Features -->
+            <div class="bg-cardBg border border-slate-800/80 p-3 sm:p-4 rounded-2xl shadow-xl flex flex-wrap gap-2 items-center justify-between">
+                <div class="flex flex-wrap gap-1.5 items-center">
+                    <button onclick="openModal('renameModal')" class="bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-slate-700 transition">✏️ Badili Jina</button>
+                    <button onclick="copyFileContent()" class="bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-slate-700 transition">📋 Copy</button>
+                    <button onclick="pasteFileContent()" class="bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-slate-700 transition">📌 Paste</button>
+                </div>
+                
+                <div class="flex flex-wrap gap-1.5 items-center">
+                    <button onclick="openModal('findReplaceModal')" class="bg-slate-900 hover:bg-slate-800 text-sky-300 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-slate-700 transition">🔍 Tafuta</button>
+                    <button onclick="changeEditorFontSize(1)" class="bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-bold px-2 py-1.5 rounded-xl border border-slate-700 transition">A+</button>
+                    <button onclick="changeEditorFontSize(-1)" class="bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-bold px-2 py-1.5 rounded-xl border border-slate-700 transition">A-</button>
+                    <button onclick="validateSyntax()" class="bg-purple-950/50 hover:bg-purple-900 text-purple-300 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-purple-800/40 transition">🛡️ Validate</button>
+                    <button onclick="minifyActiveCode()" class="bg-blue-950/50 hover:bg-blue-900 text-blue-300 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-blue-800/40 transition">📦 Minify</button>
+                    <button onclick="exportProjectZip()" class="bg-emerald-950/50 hover:bg-emerald-900 text-emerald-300 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-emerald-800/40 transition">🗜️ Zip</button>
+                    <button onclick="backupRestoreVFS()" class="bg-amber-950/50 hover:bg-amber-900 text-amber-300 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-amber-800/40 transition">💾 Backup</button>
+                    <button onclick="generatePWAConfigs()" class="bg-sky-900/40 hover:bg-sky-900 text-sky-300 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-sky-700/40 transition">⚡ PWA</button>
+                    <button onclick="openModal('deleteModal')" class="bg-red-950/50 hover:bg-red-900 text-red-400 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-red-800/40 transition">🗑️ Futa</button>
+                </div>
+            </div>
+
+            <!-- Editor Card Box -->
+            <div class="bg-cardBg border border-slate-800/80 p-4 sm:p-6 rounded-2xl shadow-xl space-y-4">
+                <div class="bg-gradient-to-r from-red-950/30 via-cardBg to-cardBg border border-red-500/20 p-4 rounded-xl flex flex-wrap justify-between items-center gap-2">
+                    <div>
+                        <h2 id="activeWorkspaceTitle" class="text-sm sm:text-base font-extrabold text-white">IDE Editor: -</h2>
+                        <p class="text-slate-400 text-[11px] mt-0.5">Mfumo uliojumuishwa na Database na localStorage thabiti.</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <select id="fileFormat" onchange="updateFileFormat()" class="bg-slate-900 border border-slate-700 text-red-400 text-xs font-bold px-3 py-1.5 rounded-xl outline-none focus:border-red-500 transition">
+                            <option value="html">HTML (.html)</option>
+                            <option value="css">CSS (.css)</option>
+                            <option value="js">JS (.js)</option>
+                            <option value="json">JSON (.json)</option>
+                            <option value="txt">Text (.txt)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <div class="flex gap-1">
+                        <button onclick="insertSnippet('html5')" class="bg-slate-900 hover:bg-slate-800 text-[10px] text-slate-300 px-2 py-1 rounded border border-slate-800">+ HTML5</button>
+                        <button onclick="insertSnippet('tailwind')" class="bg-slate-900 hover:bg-slate-800 text-[10px] text-slate-300 px-2 py-1 rounded border border-slate-800">+ Tailwind</button>
+                    </div>
+                    <button type="button" onclick="startVoiceRecognition()" id="micBtn" class="bg-slate-900 hover:bg-slate-800 text-red-400 border border-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1 shadow-sm">
+                        <span>🎙️ Sauti</span>
+                    </button>
+                </div>
+
+                <!-- Code Textarea -->
+                <textarea id="userPrompt" class="w-full h-72 bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs sm:text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-red-500 transition shadow-inner font-mono resize-y" placeholder="Andika au hariri msimbo hapa..."></textarea>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <button onclick="cleanAndFixCode()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-2 rounded-xl transition text-xs tracking-wide shadow-md">
+                        🧹 Safisha
+                    </button>
+                    <button onclick="openExternalPreviewWindow()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-2 rounded-xl transition text-xs tracking-wide shadow-md flex items-center justify-center space-x-1">
+                        <span>🌐 Hakiki (Popout)</span>
+                    </button>
+                    <button onclick="saveFileChanges()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-2 rounded-xl transition text-xs tracking-wide shadow-md">
+                        💾 Hifadhi
+                    </button>
+                    <button onclick="downloadCurrentFile()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-2 rounded-xl transition text-xs tracking-wide shadow-md">
+                        📥 Pakua
+                    </button>
+                </div>
+            </div>
+
+            <!-- Console Log Output Section -->
+            <div class="bg-cardBg border border-slate-800/80 p-4 sm:p-5 rounded-2xl shadow-xl space-y-3 pb-6">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Console Log & Database Output:</span>
+                    <button onclick="copyGeneratedCode()" class="text-xs bg-slate-900 hover:bg-slate-800 text-white font-semibold px-3 py-1.5 rounded-lg transition border border-slate-800">Nakili</button>
+                </div>
+                <pre class="bg-slate-950 p-4 rounded-xl border border-slate-900 overflow-x-auto text-xs text-emerald-300 font-mono max-h-36"><code id="codeOutput">// Msimbo na taarifa za Database zitatokea hapa...</code></pre>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals za Kisasa -->
+    <div id="folderModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-slate-800 p-6 rounded-2xl w-full max-w-sm space-y-4 shadow-2xl">
+            <h3 class="text-sm font-bold text-white">📁 Unda Folder Mpya</h3>
+            <input type="text" id="newFolderNameInput" placeholder="Jina la folder..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-red-500">
+            <div class="flex space-x-2">
+                <button onclick="createFolderAction()" class="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 rounded-xl">Unda</button>
+                <button onclick="closeModal('folderModal')" class="flex-1 bg-slate-900 text-slate-300 text-xs font-bold py-2.5 rounded-xl border border-slate-800">Ghairi</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="fileModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-slate-800 p-6 rounded-2xl w-full max-w-sm space-y-4 shadow-2xl">
+            <h3 class="text-sm font-bold text-white">📄 Unda Faili Jipya</h3>
+            <input type="text" id="newFileNameInput" placeholder="Mf. script.js, style.css" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-red-500">
+            <div class="flex space-x-2">
+                <button onclick="createFileAction()" class="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 rounded-xl">Unda</button>
+                <button onclick="closeModal('fileModal')" class="flex-1 bg-slate-900 text-slate-300 text-xs font-bold py-2.5 rounded-xl border border-slate-800">Ghairi</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="renameModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-slate-800 p-6 rounded-2xl w-full max-w-sm space-y-4 shadow-2xl">
+            <h3 class="text-sm font-bold text-white">✏️ Badili Jina</h3>
+            <input type="text" id="renameFileInput" placeholder="Jina jipya..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-red-500">
+            <div class="flex space-x-2">
+                <button onclick="renameFileAction()" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2.5 rounded-xl">Badili</button>
+                <button onclick="closeModal('renameModal')" class="flex-1 bg-slate-900 text-slate-300 text-xs font-bold py-2.5 rounded-xl border border-slate-800">Ghairi</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="findReplaceModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-slate-800 p-6 rounded-2xl w-full max-w-sm space-y-4 shadow-2xl">
+            <h3 class="text-sm font-bold text-white">🔍 Tafuta na Badili</h3>
+            <input type="text" id="findInputText" placeholder="Tafuta neno..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-red-500">
+            <input type="text" id="replaceInputText" placeholder="Badili na..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-red-500">
+            <div class="flex space-x-2">
+                <button onclick="executeFindReplace()" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold py-2.5 rounded-xl">Tekeleza</button>
+                <button onclick="closeModal('findReplaceModal')" class="flex-1 bg-slate-900 text-slate-300 text-xs font-bold py-2.5 rounded-xl border border-slate-800">Ghairi</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-slate-800 p-6 rounded-2xl w-full max-w-sm space-y-4 shadow-2xl text-center">
+            <h3 class="text-sm font-bold text-white">🗑️ Futa Faili Hili?</h3>
+            <p class="text-xs text-slate-400">Hatua hii haiwezi kutenguliwa ikishafutwa.</p>
+            <div class="flex space-x-2">
+                <button onclick="deleteFileAction()" class="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 rounded-xl">Ndiyo, Futa</button>
+                <button onclick="closeModal('deleteModal')" class="flex-1 bg-slate-900 text-slate-300 text-xs font-bold py-2.5 rounded-xl border border-slate-800">Ghairi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Kuu ya Mfumo na Database / LocalStorage / PWA -->
+    <script>
+        // Mfumo wa Database ya Ndani (LocalStorage VFS)
+        let fileSystem = JSON.parse(localStorage.getItem('byao_studio_pro_vfs')) || [
+            { name: 'studio_pro_core', items: [ 
+                { name: 'index.html', format: 'html', content: '<h1 class="text-red-500 text-xl font-bold">Byao Studio Pro Ecosystem</h1>' },
+                { name: 'studio.html', format: 'html', content: '<!-- Studio Central File -->' },
+                { name: 'developer pro.html', format: 'html', content: '<!-- Developer Pro Tools -->' },
+                { name: 'finish studio.html', format: 'html', content: '<!-- Finish Studio Finalizer -->' },
+                { name: 'generate ur.html', format: 'html', content: '<!-- Generator Engine -->' }
+            ] }
+        ];
+        let activeFileInfo = JSON.parse(localStorage.getItem('byao_studio_active')) || { folder: 'studio_pro_core', name: 'index.html' };
+        let currentLoadedFile = null;
+        let clipboardBuffer = '';
+        let currentFontSize = 14;
+
+        function showNotification(msg) {
+            let toast = document.getElementById('toastNotification');
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 2500);
+        }
+
+        function toggleSidebar() {
+            let sidebar = document.getElementById('appSidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        function persistFileSystem() {
+            localStorage.setItem('byao_studio_pro_vfs', JSON.stringify(fileSystem));
+            localStorage.setItem('byao_studio_active', JSON.stringify(activeFileInfo));
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            if(modalId === 'renameModal' && currentLoadedFile) {
+                document.getElementById('renameFileInput').value = currentLoadedFile.name;
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function renderFileExplorer() {
+            let container = document.getElementById('fileExplorerList');
+            container.innerHTML = '';
+
+            fileSystem.forEach(folder => {
+                let folderDiv = document.createElement('div');
+                folderDiv.className = 'space-y-1 mb-2';
+                
+                let folderTitle = document.createElement('div');
+                folderTitle.className = 'text-xs font-bold text-red-400 flex items-center justify-between py-1 px-2 bg-slate-900/60 rounded-lg border border-slate-800/50';
+                folderTitle.innerHTML = `<span>📁 ${folder.name}</span>`;
+                folderDiv.appendChild(folderTitle);
+
+                let itemsList = document.createElement('div');
+                itemsList.className = 'pl-2 space-y-1 border-l border-slate-800 ml-2 mt-1';
+
+                folder.items.forEach(file => {
+                    let fileBtn = document.createElement('button');
+                    let isActive = (activeFileInfo.folder === folder.name && activeFileInfo.name === file.name);
+                    fileBtn.className = `w-full text-left text-xs px-2.5 py-1.5 rounded-lg transition flex items-center space-x-1.5 ${isActive ? 'bg-red-600/20 text-red-400 border border-red-500/30 font-bold' : 'text-slate-300 hover:bg-slate-900'}`;
+                    fileBtn.innerHTML = `<span>📄</span> <span class="truncate">${file.name}</span>`;
+                    fileBtn.onclick = () => {
+                        activeFileInfo.folder = folder.name;
+                        activeFileInfo.name = file.name;
+                        persistFileSystem();
+                        loadFileIntoIDE();
+                        if(window.innerWidth < 1024) toggleSidebar();
+                    };
+                    itemsList.appendChild(fileBtn);
+                });
+
+                folderDiv.appendChild(itemsList);
+                container.appendChild(folderDiv);
+            });
+        }
+
+        function loadFileIntoIDE() {
+            let folder = fileSystem.find(f => f.name === activeFileInfo.folder);
+            if(folder) {
+                currentLoadedFile = folder.items.find(i => i.name === activeFileInfo.name);
+            }
+            
+            if(!currentLoadedFile && fileSystem.length > 0 && fileSystem[0].items.length > 0) {
+                activeFileInfo.folder = fileSystem[0].name;
+                activeFileInfo.name = fileSystem[0].items[0].name;
+                currentLoadedFile = fileSystem[0].items[0];
+            }
+
+            renderFileExplorer();
+
+            if(currentLoadedFile) {
+                document.getElementById('userPrompt').value = currentLoadedFile.content || '';
+                let format = currentLoadedFile.format || currentLoadedFile.name.split('.').pop() || 'html';
+                document.getElementById('fileFormat').value = format;
+                document.getElementById('activeWorkspaceTitle').innerText = `Editor: ${currentLoadedFile.name} (${activeFileInfo.folder})`;
+                document.getElementById('codeOutput').innerText = currentLoadedFile.content || '';
+            } else {
+                document.getElementById('userPrompt').value = '';
+                document.getElementById('activeWorkspaceTitle').innerText = `Editor: Hakuna faili`;
+                document.getElementById('codeOutput').innerText = '// Hakuna msimbo...';
+            }
+        }
+
+        function saveFileChanges() {
+            if(!currentLoadedFile) {
+                showNotification('Chagua au unda faili kwanza!');
+                return;
+            }
+            let code = document.getElementById('userPrompt').value;
+            let format = document.getElementById('fileFormat').value;
+            
+            currentLoadedFile.content = code;
+            currentLoadedFile.format = format;
+            
+            persistFileSystem();
+            document.getElementById('codeOutput').innerText = code;
+            showNotification('Imesèvwa kwenye Database!');
+        }
+
+        function updateFileFormat() {
+            if(currentLoadedFile) {
+                currentLoadedFile.format = document.getElementById('fileFormat').value;
+                persistFileSystem();
+            }
+        }
+
+        function openExternalPreviewWindow() {
+            let code = document.getElementById('userPrompt').value;
+            let format = document.getElementById('fileFormat').value;
+            let fullHtml = format === 'html' ? code : `<!DOCTYPE html><html lang="sw" class="dark"><head><meta charset="UTF-8"><title>BYAO Preview</title><script src="https://cdn.tailwindcss.com"><\/script></head><body class="bg-[#030712] text-slate-100 p-6"><pre class="text-emerald-300 font-mono text-xs">${code}</pre></body></html>`;
+            let previewWin = window.open('', '_blank');
+            if(previewWin) {
+                previewWin.document.write(fullHtml);
+                previewWin.document.close();
+                showNotification('Onyesho limefunguliwa!');
+            } else {
+                showNotification('Ruhusu pop-ups kwenye kivinjari chako!');
+            }
+        }
+
+        function changeEditorFontSize(delta) {
+            currentFontSize = Math.max(10, Math.min(24, currentFontSize + delta));
+            document.getElementById('userPrompt').style.fontSize = currentFontSize + 'px';
+            showNotification(`Ukubwa wa maandishi: ${currentFontSize}px`);
+        }
+
+        function validateSyntax() {
+            let code = document.getElementById('userPrompt').value;
+            let format = document.getElementById('fileFormat').value;
+            try {
+                if(format === 'js') {
+                    new Function(code);
+                    showNotification('Sintaksia ya JS iko sawa! 🟢');
+                } else if(format === 'json') {
+                    JSON.parse(code);
+                    showNotification('Muundo wa JSON ni sahihi! 🟢');
+                } else {
+                    showNotification('Uhakiki umekamilika.');
+                }
+            } catch(e) {
+                showNotification('Hitilafu: ' + e.message);
+                document.getElementById('codeOutput').innerText = '// ERROR: ' + e.message;
+            }
+        }
+
+        function minifyActiveCode() {
+            let code = document.getElementById('userPrompt').value;
+            if(!code.trim()) return;
+            let minified = code.replace(/\/\*[\s\S]*?\*\/|([^:])\/\/.*$/gm, '$1').replace(/\s+/g, ' ').trim();
+            document.getElementById('userPrompt').value = minified;
+            saveFileChanges();
+            showNotification('Msimbo umefupishwa!');
+        }
+
+        function exportProjectZip() {
+            let zip = new JSZip();
+            fileSystem.forEach(folder => {
+                let f = zip.folder(folder.name);
+                folder.items.forEach(file => f.file(file.name, file.content || ''));
+            });
+            zip.generateAsync({type:"blob"}).then(content => {
+                let url = URL.createObjectURL(content);
+                let a = document.createElement('a');
+                a.href = url;
+                a.download = "byao_studio_pro_bundle.zip";
+                a.click();
+                showNotification('Mradi umepakuliwa kama ZIP!');
+            });
+        }
+
+        function backupRestoreVFS() {
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fileSystem));
+            let a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", "byao_studio_backup.json");
+            a.click();
+            showNotification('Backup imetengenezwa!');
+        }
+
+        function executeFindReplace() {
+            let findText = document.getElementById('findInputText').value;
+            let replaceText = document.getElementById('replaceInputText').value;
+            let code = document.getElementById('userPrompt').value;
+            if(!findText) return;
+            document.getElementById('userPrompt').value = code.split(findText).join(replaceText);
+            saveFileChanges();
+            closeModal('findReplaceModal');
+            showNotification('Maneno yamebadilishwa!');
+        }
+
+        function insertSnippet(type) {
+            let snippet = type === 'html5' ? '<!DOCTYPE html>\n<html lang="sw" class="dark">\n<head><meta charset="UTF-8"><title>App</title><script src="https://cdn.tailwindcss.com"><\/script></head>\n<body class="bg-gray-950 text-white p-6"><h1>BYAO</h1></body>\n</html>' : '<script src="https://cdn.tailwindcss.com"><\/script>';
+            document.getElementById('userPrompt').value += '\n' + snippet;
+            saveFileChanges();
+            showNotification('Snippet imewekwa!');
+        }
+
+        function createFolderAction() {
+            let name = document.getElementById('newFolderNameInput').value.trim();
+            if(name && !fileSystem.some(f => f.name === name)) {
+                fileSystem.push({ name: name, items: [] });
+                persistFileSystem();
+                closeModal('folderModal');
+                renderFileExplorer();
+                showNotification(`Folder "${name}" imeundwa!`);
+            }
+        }
+
+        function createFileAction() {
+            let name = document.getElementById('newFileNameInput').value.trim();
+            if(name) {
+                let folder = fileSystem.find(f => f.name === activeFileInfo.folder) || fileSystem[0];
+                if(!folder.items.some(i => i.name === name)) {
+                    folder.items.push({ name: name, format: name.split('.').pop(), content: `// ${name}\n` });
+                    activeFileInfo.name = name;
+                    persistFileSystem();
+                    closeModal('fileModal');
+                    loadFileIntoIDE();
+                    showNotification(`Faili "${name}" limeundwa!`);
+                }
+            }
+        }
+
+        function renameFileAction() {
+            if(!currentLoadedFile) return;
+            let newName = document.getElementById('renameFileInput').value.trim();
+            if(newName) {
+                currentLoadedFile.name = newName;
+                currentLoadedFile.format = newName.split('.').pop();
+                activeFileInfo.name = newName;
+                persistFileSystem();
+                closeModal('renameModal');
+                loadFileIntoIDE();
+                showNotification('Jina limebadilishwa!');
+            }
+        }
+
+        function deleteFileAction() {
+            if(!currentLoadedFile) return;
+            let folder = fileSystem.find(f => f.name === activeFileInfo.folder);
+            if(folder) {
+                folder.items = folder.items.filter(i => i.name !== currentLoadedFile.name);
+                persistFileSystem();
+                closeModal('deleteModal');
+                loadFileIntoIDE();
+                showNotification('Faili limefutwa!');
+            }
+        }
+
+        function copyFileContent() {
+            if(!currentLoadedFile) return;
+            clipboardBuffer = document.getElementById('userPrompt').value;
+            showNotification('Msimbo umenakiliwa!');
+        }
+
+        function pasteFileContent() {
+            if(!currentLoadedFile || !clipboardBuffer) return;
+            document.getElementById('userPrompt').value += '\n' + clipboardBuffer;
+            saveFileChanges();
+            showNotification('Imepachikwa!');
+        }
+
+        function generatePWAConfigs() {
+            let manifest = '{\n  "name": "Byao Studio Pro",\n  "short_name": "StudioPro",\n  "start_url": "./index.html",\n  "display": "standalone",\n  "background_color": "#030712",\n  "theme_color": "#dc2626"\n}';
+            let sw = 'self.addEventListener("install", e => {});';
+            let folder = fileSystem[0];
+            if(!folder.items.some(i => i.name === 'manifest.json')) folder.items.push({ name: 'manifest.json', format: 'json', content: manifest });
+            if(!folder.items.some(i => i.name === 'sw.js')) folder.items.push({ name: 'sw.js', format: 'js', content: sw });
+            persistFileSystem();
+            loadFileIntoIDE();
+            showNotification('PWA Manifest & Service Worker zimetengenezwa!');
+        }
+
+        function downloadCurrentFile() {
+            let code = document.getElementById('userPrompt').value;
+            let blob = new Blob([code], { type: 'text/plain' });
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = currentLoadedFile ? currentLoadedFile.name : 'file.txt';
+            a.click();
+            showNotification('Faili limepakuliwa!');
+        }
+
+        function copyGeneratedCode() {
+            navigator.clipboard.writeText(document.getElementById('codeOutput').innerText);
+            showNotification('Kodi imenakiliwa!');
+        }
+
+        function cleanAndFixCode() {
+            let code = document.getElementById('userPrompt').value;
+            if(!code.trim()) return;
+            let lines = code.split('\n').filter((l, i, arr) => l.trim() === '' || arr.indexOf(l) === i);
+            document.getElementById('userPrompt').value = lines.join('\n');
+            saveFileChanges();
+            showNotification('Safisha imekamilika!');
+        }
+
+        function goBackToStudio() {
+            window.location.href = 'studio.html';
+        }
+
+        function startVoiceRecognition() {
+            try {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if(!SpeechRecognition) return;
+                const rec = new SpeechRecognition();
+                rec.lang = 'sw-TZ';
+                document.getElementById('micBtn').innerText = '🎙️ Sikiliza...';
+                rec.onresult = (e) => {
+                    document.getElementById('userPrompt').value += '\n' + e.results[0][0].transcript;
+                    document.getElementById('micBtn').innerText = '🎙️ Sauti';
+                    saveFileChanges();
+                };
+                rec.onerror = rec.onend = () => { document.getElementById('micBtn').innerText = '🎙️ Sauti'; };
+                rec.start();
+            } catch(e) {}
+        }
+
+        window.onload = function() {
+            loadFileIntoIDE();
+        };
+    </script>
+</body>
+</html>
+
+
