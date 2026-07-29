@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="sw" class="dark">
-<head><!-- PWA Manifest & App Icon Link -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#010204">
-<link rel="apple-touch-icon" href="byao-studio.png">
-
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BYAO Studio Pro - Ecosystem</title>
@@ -69,7 +65,7 @@
                 <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white">✕</button>
             </div>
 
-            <!-- Viungo vya Faili za Studio (Kulingana na Picha ya Mradi) -->
+            <!-- Viungo vya Faili za Studio -->
             <div class="p-3 border-b border-slate-800/60 bg-slate-950/40">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Kurasa & Moduli za Studio</p>
                 <div class="grid grid-cols-1 gap-1.5">
@@ -92,7 +88,7 @@
                 </div>
             </div>
 
-            <!-- File Explorer VFS -->
+            <!-- File Explorer VFS & Storage Link -->
             <div class="flex-1 p-4 flex flex-col space-y-3 overflow-y-auto">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Project VFS Explorer</span>
@@ -101,6 +97,12 @@
                         <button onclick="openModal('fileModal')" class="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] font-bold px-2 py-1 rounded-lg border border-slate-700" title="Unda Faili">+📄</button>
                     </div>
                 </div>
+                
+                <!-- Kitufe cha Kuunganisha na Storage Halisi ya Simu/PC -->
+                <button onclick="linkDeviceFolderStorage()" class="w-full bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 text-[11px] font-bold py-2 px-3 rounded-xl border border-amber-800/50 transition flex items-center justify-center space-x-1.5 shadow-sm">
+                    <span>📂 Unganisha Storage ya Simu</span>
+                </button>
+
                 <div id="fileExplorerList" class="flex flex-col space-y-1.5">
                     <!-- Mafaili yanajazwa hapa na Script -->
                 </div>
@@ -136,7 +138,7 @@
                 <div class="bg-gradient-to-r from-red-950/30 via-cardBg to-cardBg border border-red-500/20 p-4 rounded-xl flex flex-wrap justify-between items-center gap-2">
                     <div>
                         <h2 id="activeWorkspaceTitle" class="text-sm sm:text-base font-extrabold text-white">IDE Editor: -</h2>
-                        <p class="text-slate-400 text-[11px] mt-0.5">Mfumo uliojumuishwa na Database na localStorage thabiti.</p>
+                        <p class="text-slate-400 text-[11px] mt-0.5">Mfumo uliojumuishwa na Database na LocalStorage thabiti.</p>
                     </div>
                     <div class="flex items-center space-x-2">
                         <select id="fileFormat" onchange="updateFileFormat()" class="bg-slate-900 border border-slate-700 text-red-400 text-xs font-bold px-3 py-1.5 rounded-xl outline-none focus:border-red-500 transition">
@@ -149,14 +151,20 @@
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center">
+                <!-- Zana za Ndani ya Kihariri (Undo, Redo, Select All) -->
+                <div class="flex justify-between items-center flex-wrap gap-2">
+                    <div class="flex gap-1.5 items-center">
+                        <button onclick="editorUndo()" class="bg-slate-900 hover:bg-slate-800 text-[11px] font-bold text-slate-300 px-2.5 py-1 rounded-lg border border-slate-800" title="Rudisha Nyuma (Undo)">↩️ Nyuma</button>
+                        <button onclick="editorRedo()" class="bg-slate-900 hover:bg-slate-800 text-[11px] font-bold text-slate-300 px-2.5 py-1 rounded-lg border border-slate-800" title="Rudi Mbele (Redo)">↪️ Mbele</button>
+                        <button onclick="editorSelectAll()" class="bg-slate-900 hover:bg-slate-800 text-[11px] font-bold text-sky-400 px-2.5 py-1 rounded-lg border border-slate-800" title="Chagua Zote (Select All)">✨ Select All</button>
+                    </div>
                     <div class="flex gap-1">
                         <button onclick="insertSnippet('html5')" class="bg-slate-900 hover:bg-slate-800 text-[10px] text-slate-300 px-2 py-1 rounded border border-slate-800">+ HTML5</button>
                         <button onclick="insertSnippet('tailwind')" class="bg-slate-900 hover:bg-slate-800 text-[10px] text-slate-300 px-2 py-1 rounded border border-slate-800">+ Tailwind</button>
+                        <button type="button" onclick="startVoiceRecognition()" id="micBtn" class="bg-slate-900 hover:bg-slate-800 text-red-400 border border-slate-800 text-[10px] font-bold px-2 py-1 rounded transition flex items-center space-x-1 shadow-sm">
+                            <span>🎙️ Sauti</span>
+                        </button>
                     </div>
-                    <button type="button" onclick="startVoiceRecognition()" id="micBtn" class="bg-slate-900 hover:bg-slate-800 text-red-400 border border-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1 shadow-sm">
-                        <span>🎙️ Sauti</span>
-                    </button>
                 </div>
 
                 <!-- Code Textarea -->
@@ -262,6 +270,97 @@
         let currentLoadedFile = null;
         let clipboardBuffer = '';
         let currentFontSize = 14;
+        let linkedDeviceDirectoryHandle = null; // Inashika folder halisi ya simu/pc
+
+        // Historia ya Undo / Redo kwa ajili ya kihariri
+        let undoHistory = [];
+        let redoHistory = [];
+        let lastEditorValue = '';
+
+        const textareaEl = document.getElementById('userPrompt');
+        textareaEl.addEventListener('input', () => {
+            let val = textareaEl.value;
+            if (val !== lastEditorValue) {
+                undoHistory.push(lastEditorValue);
+                redoHistory = []; // Futa redo mpya pindi uandikapo kitu kipya
+                lastEditorValue = val;
+            }
+        });
+
+        function editorUndo() {
+            if (undoHistory.length > 0) {
+                redoHistory.push(textareaEl.value);
+                let prev = undoHistory.pop();
+                textareaEl.value = prev;
+                lastEditorValue = prev;
+                saveFileChanges();
+                showNotification('Imerudishwa nyuma (Undo)');
+            }
+        }
+
+        function editorRedo() {
+            if (redoHistory.length > 0) {
+                undoHistory.push(textareaEl.value);
+                let next = redoHistory.pop();
+                textareaEl.value = next;
+                lastEditorValue = next;
+                saveFileChanges();
+                showNotification('Imerudishwa mbele (Redo)');
+            }
+        }
+
+        function editorSelectAll() {
+            textareaEl.select();
+            textareaEl.setSelectionRange(0, textareaEl.value.length);
+            showNotification('Maandishi yote yamechaguliwa!');
+        }
+
+        // Kuunganisha folda ya simu / device storage moja kwa moja
+        async function linkDeviceFolderStorage() {
+            try {
+                if (!window.showDirectoryPicker) {
+                    showNotification('Kivinjari chako hakiauni direktori ya simu moja kwa moja.');
+                    return;
+                }
+                linkedDeviceDirectoryHandle = await window.showDirectoryPicker();
+                showNotification(`Folder "${linkedDeviceDirectoryHandle.name}" imeunganishwa vizuri!`);
+                
+                // Kusoma faili zilizomo kwenye folder la simu na kuzileta kwenye mfumo
+                let folderName = linkedDeviceDirectoryHandle.name;
+                let newFolder = { name: folderName, items: [] };
+                
+                for await (const entry of linkedDeviceDirectoryHandle.values()) {
+                    if (entry.kind === 'file') {
+                        let fileData = await entry.getFile();
+                        let textContent = await fileData.text();
+                        newFolder.items.push({
+                            name: entry.name,
+                            format: entry.name.split('.').pop(),
+                            content: textContent,
+                            handle: entry // Tunatunza handle kwa ajili ya kuandikia moja kwa moja
+                        });
+                    }
+                }
+                
+                // Ongeza au badilisha kwenye VFS
+                let existingIndex = fileSystem.findIndex(f => f.name === folderName);
+                if (existingIndex >= 0) {
+                    fileSystem[existingIndex] = newFolder;
+                } else {
+                    fileSystem.push(newFolder);
+                }
+                
+                activeFileInfo.folder = folderName;
+                if(newFolder.items.length > 0) {
+                    activeFileInfo.name = newFolder.items[0].name;
+                }
+                persistFileSystem();
+                loadFileIntoIDE();
+            } catch (err) {
+                console.error(err);
+                showNotification('Imeshindikana kuunganisha na storage ya simu.');
+            }
+        }
 
         function showNotification(msg) {
             let toast = document.getElementById('toastNotification');
@@ -276,6 +375,7 @@
         }
 
         function persistFileSystem() {
+            // Hatuhifadhi FileHandles kwenye LocalStorage kwani haziwezi ku-serialize, ila tunatunza data zote za maandishi
             localStorage.setItem('byao_studio_pro_vfs', JSON.stringify(fileSystem));
             localStorage.setItem('byao_studio_active', JSON.stringify(activeFileInfo));
         }
@@ -342,11 +442,13 @@
             renderFileExplorer();
 
             if(currentLoadedFile) {
-                document.getElementById('userPrompt').value = currentLoadedFile.content || '';
+                let content = currentLoadedFile.content || '';
+                document.getElementById('userPrompt').value = content;
+                lastEditorValue = content;
                 let format = currentLoadedFile.format || currentLoadedFile.name.split('.').pop() || 'html';
                 document.getElementById('fileFormat').value = format;
                 document.getElementById('activeWorkspaceTitle').innerText = `Editor: ${currentLoadedFile.name} (${activeFileInfo.folder})`;
-                document.getElementById('codeOutput').innerText = currentLoadedFile.content || '';
+                document.getElementById('codeOutput').innerText = content;
             } else {
                 document.getElementById('userPrompt').value = '';
                 document.getElementById('activeWorkspaceTitle').innerText = `Editor: Hakuna faili`;
@@ -354,7 +456,7 @@
             }
         }
 
-        function saveFileChanges() {
+        async function saveFileChanges() {
             if(!currentLoadedFile) {
                 showNotification('Chagua au unda faili kwanza!');
                 return;
@@ -365,9 +467,20 @@
             currentLoadedFile.content = code;
             currentLoadedFile.format = format;
             
+            // Ikiwa faili hili lilitoka kwenye folda halisi ya simu/pc, lihifadhi huko pia moja kwa moja!
+            if (currentLoadedFile.handle && currentLoadedFile.handle.createWritable) {
+                try {
+                    const writableStream = await currentLoadedFile.handle.createWritable();
+                    await writableStream.write(code);
+                    await writableStream.close();
+                } catch (e) {
+                    console.error("Imeshindikana kuhifadhi kwenye device storage:", e);
+                }
+            }
+
             persistFileSystem();
             document.getElementById('codeOutput').innerText = code;
-            showNotification('Imesèvwa kwenye Database!');
+            showNotification('Imesèvwa kwenye Database na Storage!');
         }
 
         function updateFileFormat() {
@@ -468,7 +581,7 @@
             showNotification('Snippet imewekwa!');
         }
 
-        function createFolderAction() {
+        async function createFolderAction() {
             let name = document.getElementById('newFolderNameInput').value.trim();
             if(name && !fileSystem.some(f => f.name === name)) {
                 fileSystem.push({ name: name, items: [] });
@@ -479,12 +592,13 @@
             }
         }
 
-        function createFileAction() {
+        async function createFileAction() {
             let name = document.getElementById('newFileNameInput').value.trim();
             if(name) {
                 let folder = fileSystem.find(f => f.name === activeFileInfo.folder) || fileSystem[0];
                 if(!folder.items.some(i => i.name === name)) {
-                    folder.items.push({ name: name, format: name.split('.').pop(), content: `// ${name}\n` });
+                    let newFileObj = { name: name, format: name.split('.').pop(), content: `// ${name}\n` };
+                    folder.items.push(newFileObj);
                     activeFileInfo.name = name;
                     persistFileSystem();
                     closeModal('fileModal');
@@ -595,5 +709,3 @@
     </script>
 </body>
 </html>
-
-
